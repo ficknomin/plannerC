@@ -37,9 +37,18 @@ event createEvent()
     scanf("%d", &newEvent->duration);
 
     printf("Enter the priority of this event(1-3):\n");
-    scanf("%d\n", &newEvent->priority);
-    
+    scanf("%d", &newEvent->priority);
+
     return *newEvent;
+}
+
+int numberElements(event events[])
+{
+
+    int num = sizeof(events)/ sizeof(*events);
+
+    return num;
+
 }
 
 
@@ -56,15 +65,20 @@ int main()
 
         if(userInput == 1)
         {
-            return 1;
+            for(int i = 0; i < numberElements(events); i++)
+            {
+                printf("%s, %d, %d:%d\n\n", events[i].name, events[i].priority, events[i].hour, events[i].minute);
+            }
+
+            goto main;
         }
 
         if(userInput == 2)
         {
             int i = 0;
 
-            event newEvent = createEvent();
-            events[eventCounter] = newEvent;
+            
+            events[eventCounter] = createEvent();
             eventCounter++;
 
             goto main;
