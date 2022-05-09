@@ -11,11 +11,52 @@ typedef struct event
     int priority;
 }event;
 
+typedef struct node
+{
+    event event;
+    struct node *next;
+}node;
+
+void append(node **head, event event)
+{
+    node *newNode = (node*) malloc(sizeof(node));
+    node *last = *head;
+
+    newNode->event = event;
+
+    if(*head == NULL)
+    {
+        *head = newNode;
+        return;
+    }
+
+    while(last->next != NULL)
+    {
+        last = last->next;
+    }
+
+    last->next = newNode;
+    return;
+}
+
+int numElements(node* head)
+{
+    int num = 0;
+
+    while(head != NULL)
+    {
+        head = head->next;
+        num++;
+    }
+
+    return num;
+}
+
 int menu()
 {
     int userInput;
 
-    printf("Choose an option:\n");
+    printf("\nChoose an option:\n");
     printf("1. List all events\n2. Add an event\n3. Exit\n\n");
 
     scanf("%d", &userInput);
@@ -23,12 +64,12 @@ int menu()
     return userInput;
 }
 
-event createEvent()
+void createEvent(node** head)
 {
     event* newEvent = malloc(sizeof(event));
 
     printf("Enter the name of the band:\n");
-    scanf("%s", newEvent->name);
+    scanf("%s[^\n]", newEvent->name);
 
     printf("Enter the preffered hour and minute respectively(HH:MM format):\n");
     scanf("%d\n%d", &newEvent->hour, &newEvent->minute);
@@ -39,16 +80,7 @@ event createEvent()
     printf("Enter the priority of this event(1-3):\n");
     scanf("%d", &newEvent->priority);
 
-    return *newEvent;
-}
-
-int numberElements(event events[])
-{
-
-    int num = sizeof(events)/ sizeof(*events);
-
-    return num;
-
+    append(head, *newEvent);
 }
 
 
@@ -56,7 +88,9 @@ int main()
 {
     int userInput;
     int eventCounter = 0;
-    event events[50];
+
+    node *head = (node*) malloc(sizeof(node));
+    head = NULL;
 
     printf("\e[1mWelcome to the event planner!\e[m\n\n");
 
@@ -65,21 +99,24 @@ int main()
 
         if(userInput == 1)
         {
-            for(int i = 0; i < numberElements(events); i++)
+            node *buffer = (node*) malloc(sizeof(node));
+
+            buffer = head;
+
+            while(buffer != NULL)
             {
-                printf("%s, %d, %d:%d\n\n", events[i].name, events[i].priority, events[i].hour, events[i].minute);
+                printf("%s, %d, %d:%d\n", buffer->event.name, buffer->event.priority, buffer->event.hour, buffer->event.minute);
+                buffer = buffer->next;
             }
+
+            free(buffer);
 
             goto main;
         }
 
         if(userInput == 2)
         {
-            int i = 0;
-
-            
-            events[eventCounter] = createEvent();
-            eventCounter++;
+            createEvent(&head);
 
             goto main;
         }
