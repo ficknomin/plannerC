@@ -39,6 +39,33 @@ void append(node **head, event event)
     return;
 }
 
+/*
+*   sortPriority function takes the pointer to the list as a parameter.
+*   Sorts the bands according to their priority (1-3).
+*/
+
+void sortPriority(node *head)
+{
+    node *pointer = head;
+    event temp;
+
+    while(pointer != NULL)
+    {
+        node *buffer = pointer;
+        while(buffer->next != NULL)
+        {
+            if(buffer->event.priority > buffer->next->event.priority)
+            {
+                temp = buffer->event;
+                buffer->event = buffer->next->event;
+                buffer->next->event = temp;
+            }
+            buffer = buffer->next;
+        }
+        pointer = pointer->next;
+    }
+}
+
 int numElements(node* head)
 {
     int num = 0;
@@ -51,6 +78,11 @@ int numElements(node* head)
 
     return num;
 }
+
+/*
+*   menu function takes no parameters.
+*   prints possible choices, takes user input and returns it as an integer.
+*/
 
 int menu()
 {
@@ -69,7 +101,7 @@ void createEvent(node** head)
     event* newEvent = malloc(sizeof(event));
 
     printf("Enter the name of the band:\n");
-    scanf("%s[^\n]", newEvent->name);
+    scanf(" %[^\n]s", newEvent->name);
 
     printf("Enter the preffered hour and minute respectively(HH:MM format):\n");
     scanf("%d\n%d", &newEvent->hour, &newEvent->minute);
@@ -99,6 +131,8 @@ int main()
 
         if(userInput == 1)
         {
+            sortPriority(head);
+
             node *buffer = (node*) malloc(sizeof(node));
 
             buffer = head;
