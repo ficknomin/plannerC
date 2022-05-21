@@ -2,12 +2,16 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define PREP 20
+
 typedef struct event
 {
     char name[50];
     int hour;
     int minute;
     int duration;
+    int endHour;
+    int endMin;
     int priority;
 }event;
 
@@ -16,6 +20,20 @@ typedef struct node
     event event;
     struct node *next;
 }node;
+
+
+int numElements(node* head)
+{
+    int num = 0;
+
+    while(head != NULL)
+    {
+        head = head->next;
+        num++;
+    }
+
+    return num;
+}
 
 void append(node **head, event event)
 {
@@ -66,17 +84,72 @@ void sortPriority(node *head)
     }
 }
 
-int numElements(node* head)
+/*
+* sortTime function sorts the events
+* takes the head pointer as a parameter
+*
+*/
+
+void sortTime(node *head)
 {
-    int num = 0;
+    node *pointer = head;
+    node *buffer = head;
+    int gap;
 
-    while(head != NULL)
+    for(int i = 0; i < numElements(head); i++)
     {
-        head = head->next;
-        num++;
-    }
+        for(int y = 0; y < numElements(head); y++)
+        {
+            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.hour == buffer->event.endHour) && ((pointer->event.minute == buffer->event.endMin) || (pointer->event.minute < buffer->event.endMin)) && (pointer->event.priority>=buffer->event.priority))
+            {
+                printf("Pointer:%s\n", pointer->event.name);
+                printf("Buffer:%s\n", buffer->event.name);
+                gap = buffer->event.endMin - pointer->event.minute;
 
-    return num;
+                pointer->event.minute += (gap + PREP);
+                pointer->event.endMin += (gap + PREP);
+
+                if(pointer->event.minute >= 60)
+                {
+                    pointer->event.hour++;
+                    pointer->event.minute -= 60;
+                }
+
+                if(pointer->event.endMin >= 60)
+                {
+                    pointer->event.endHour++;
+                    pointer->event.endMin -= 60;
+                }
+            }
+
+            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.endHour == buffer->event.hour) && ((pointer->event.endMin == buffer->event.minute) || (pointer->event.endMin > buffer->event.minute)) && (pointer->event.priority>=buffer->event.priority))
+            {
+                
+                gap = pointer->event.endMin - buffer->event.minute;
+
+                pointer->event.endMin -= (gap + PREP);
+                pointer->event.minute -= (gap + PREP);
+
+                if(pointer->event.endMin < 0)
+                {
+                    pointer->event.endHour--;
+                    pointer->event.endMin = 60 + pointer->event.endMin;
+                }
+
+                if(pointer->event.minute < 0)
+                {
+                    pointer->event.hour--;
+                    pointer->event.minute = 60 + pointer->event.minute;
+                }
+            }
+
+
+            buffer = buffer->next;
+        }
+        
+        buffer = head;
+        pointer = pointer->next;
+    }
 }
 
 /*
@@ -109,6 +182,17 @@ void createEvent(node** head)
     printf("Enter the duration of the event(in minutes):\n");
     scanf("%d", &newEvent->duration);
 
+    if((newEvent->minute + newEvent->duration) > 60)
+    {
+        newEvent->endHour = newEvent->hour + 1;
+        newEvent->endMin = (newEvent->minute + newEvent->duration) - 60;
+    }
+    else
+    {
+        newEvent->endHour = newEvent->hour;
+        newEvent->endMin = newEvent->minute + newEvent->duration;
+    }
+
     printf("Enter the priority of this event(1-3):\n");
     scanf("%d", &newEvent->priority);
 
@@ -131,7 +215,14 @@ int main()
 
         if(userInput == 1)
         {
+            if(head == NULL)
+            {
+                printf("There are no entries, please add an event!\n");
+                goto main;
+            }
+
             sortPriority(head);
+            sortTime(head);
 
             node *buffer = (node*) malloc(sizeof(node));
 
@@ -139,7 +230,7 @@ int main()
 
             while(buffer != NULL)
             {
-                printf("%s, %d, %d:%d\n", buffer->event.name, buffer->event.priority, buffer->event.hour, buffer->event.minute);
+                printf("%s, %d, %d:%d \t%d:%d\n", buffer->event.name, buffer->event.priority, buffer->event.hour, buffer->event.minute, buffer->event.endHour, buffer->event.endMin);
                 buffer = buffer->next;
             }
 
