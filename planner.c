@@ -141,14 +141,32 @@ void sortTime(node *head)
                     pointer->event.hour--;
                     pointer->event.minute = 60 + pointer->event.minute;
                 }
-            }
 
+            }
 
             buffer = buffer->next;
         }
         
         buffer = head;
         pointer = pointer->next;
+    }
+}
+
+void validate(node *head)
+{
+    while(head != NULL)
+    {
+        if(head->event.minute >= 60)
+        {
+            head->event.hour++;
+            head->event.minute -= 60;
+        }
+        if(head->event.endMin >= 60)
+        {
+            head->event.endHour++;
+            head->event.endMin -= 60;
+        }
+        head = head->next;
     }
 }
 
@@ -223,6 +241,9 @@ int main()
 
             sortPriority(head);
             sortTime(head);
+            sortTime(head);
+            validate(head);
+            sortPriority(head);
 
             node *buffer = (node*) malloc(sizeof(node));
 
