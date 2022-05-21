@@ -12,6 +12,7 @@ typedef struct event
     int duration;
     int endHour;
     int endMin;
+    int stage;
     int priority;
 }event;
 
@@ -100,7 +101,7 @@ void sortTime(node *head)
     {
         for(int y = 0; y < numElements(head); y++)
         {
-            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.hour == buffer->event.endHour) && ((pointer->event.minute == buffer->event.endMin) || (pointer->event.minute < buffer->event.endMin)) && (pointer->event.priority>=buffer->event.priority))
+            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.hour == buffer->event.endHour) && ((pointer->event.minute == buffer->event.endMin) || (pointer->event.minute < buffer->event.endMin)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
             {
                 printf("Pointer:%s\n", pointer->event.name);
                 printf("Buffer:%s\n", buffer->event.name);
@@ -122,7 +123,7 @@ void sortTime(node *head)
                 }
             }
 
-            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.endHour == buffer->event.hour) && ((pointer->event.endMin == buffer->event.minute) || (pointer->event.endMin > buffer->event.minute)) && (pointer->event.priority>=buffer->event.priority))
+            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.endHour == buffer->event.hour) && ((pointer->event.endMin == buffer->event.minute) || (pointer->event.endMin > buffer->event.minute)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
             {
                 
                 gap = pointer->event.endMin - buffer->event.minute;
@@ -194,11 +195,28 @@ void createEvent(node** head)
     printf("Enter the name of the band:\n");
     scanf(" %[^\n]s", newEvent->name);
 
-    printf("Enter the preffered hour and minute respectively(HH:MM format):\n");
-    scanf("%d\n%d", &newEvent->hour, &newEvent->minute);
 
-    printf("Enter the duration of the event(in minutes):\n");
-    scanf("%d", &newEvent->duration);
+    time:
+        printf("Enter the preffered hour and minute respectively(HH:MM format):\n");
+        scanf("%d", &newEvent->hour);
+        while ((getchar()) != '\n'); // cleans the scanf buffer in case the loop repeats
+        scanf("%d", &newEvent->minute);
+        while ((getchar()) != '\n');
+        if((newEvent->hour > 24 || newEvent->hour < 0) || (newEvent->minute > 60 || newEvent->minute < 0) || newEvent->hour == 0 || newEvent->minute == 0)
+        {
+            printf("Please, enter a valid hour/min!\n");
+            goto time;
+        }
+
+    duration:
+        printf("Enter the duration of the event(in minutes):\n");
+        scanf("%d", &newEvent->duration);
+        while ((getchar()) != '\n');
+        if(newEvent->duration == 0)
+        {
+            printf("Please, enter valid duration!\n");
+            goto duration;
+        }
 
     if((newEvent->minute + newEvent->duration) > 60)
     {
@@ -211,8 +229,27 @@ void createEvent(node** head)
         newEvent->endMin = newEvent->minute + newEvent->duration;
     }
 
-    printf("Enter the priority of this event(1-3):\n");
-    scanf("%d", &newEvent->priority);
+    stage:
+
+        printf("Enter the preffered stage(1-3):\n");
+        scanf("%d", &newEvent->stage);
+        while ((getchar()) != '\n');
+        if(newEvent->stage > 3 || newEvent->stage < 1 || newEvent->stage == 0)
+        {
+            printf("Sorry, enter a valid stage number!\n");
+            goto stage;
+        }
+
+    priority:
+
+        printf("Enter the priority of this event(1-3):\n");
+        scanf("%d", &newEvent->priority);
+        while ((getchar()) != '\n');
+        if(newEvent->priority > 3 || newEvent->priority < 1 || newEvent->priority == 0)
+        {
+            printf("Sorry, enter valid priority!\n");
+            goto priority;
+        }
 
     append(head, *newEvent);
 }
