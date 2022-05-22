@@ -22,7 +22,6 @@ typedef struct node
     struct node *next;
 }node;
 
-
 int numElements(node* head)
 {
     int num = 0;
@@ -86,72 +85,114 @@ void sortPriority(node *head)
 }
 
 /*
-* sortTime function sorts the events
-* takes the head pointer as a parameter
-*
+*  parseStage function takes the chosen element and parses it through the list to find whether there are available slots at chosen stage
+*  function returns an integer(number of events of higher priority at the same time)
 */
 
-void sortTime(node *head)
+int parseStage(node *element, node *head, int stage)
 {
-    node *pointer = head;
+    int count = 0;
     node *buffer = head;
-    int gap;
-
-    for(int i = 0; i < numElements(head); i++)
+ 
+    while(buffer != NULL)
     {
-        for(int y = 0; y < numElements(head); y++)
+        if((element->event.priority > buffer->event.priority) && (element->event.hour == buffer->event.hour|| element->event.hour == buffer->event.endHour) && buffer->event.stage == stage)
         {
-            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.hour == buffer->event.endHour) && ((pointer->event.minute == buffer->event.endMin) || (pointer->event.minute < buffer->event.endMin)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
-            {
-                printf("Pointer:%s\n", pointer->event.name);
-                printf("Buffer:%s\n", buffer->event.name);
-                gap = buffer->event.endMin - pointer->event.minute;
-
-                pointer->event.minute += (gap + PREP);
-                pointer->event.endMin += (gap + PREP);
-
-                if(pointer->event.minute >= 60)
-                {
-                    pointer->event.hour++;
-                    pointer->event.minute -= 60;
-                }
-
-                if(pointer->event.endMin >= 60)
-                {
-                    pointer->event.endHour++;
-                    pointer->event.endMin -= 60;
-                }
-            }
-
-            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.endHour == buffer->event.hour) && ((pointer->event.endMin == buffer->event.minute) || (pointer->event.endMin > buffer->event.minute)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
-            {
-                
-                gap = pointer->event.endMin - buffer->event.minute;
-
-                pointer->event.endMin -= (gap + PREP);
-                pointer->event.minute -= (gap + PREP);
-
-                if(pointer->event.endMin < 0)
-                {
-                    pointer->event.endHour--;
-                    pointer->event.endMin = 60 + pointer->event.endMin;
-                }
-
-                if(pointer->event.minute < 0)
-                {
-                    pointer->event.hour--;
-                    pointer->event.minute = 60 + pointer->event.minute;
-                }
-
-            }
-
-            buffer = buffer->next;
+            count++;
         }
         
-        buffer = head;
-        pointer = pointer->next;
+        buffer = buffer->next;
     }
+
+    return count;
 }
+
+
+/*
+* sortTime function sorts the events
+* takes the head pointer as a parameter
+* function uses parseStage function, automates the sorting
+*/
+
+void sortTime(node* head)
+{
+    
+    node* pointer = head;
+    node* buffer = head;
+    int gap;
+    int stageOne = 0, stageTwo = 0, stageThree = 0;
+
+        for(int i = 0; i < numElements(head); i++)
+        {
+            for(int y = 0; y < numElements(head); y++)
+            {
+                stageOne = parseStage(pointer, head, 1);
+                stageTwo = parseStage(pointer, head, 2);
+                stageThree = parseStage(pointer, head, 3);
+
+                if(stageOne == 0)
+                {
+                    pointer->event.stage = 1;
+                }
+                else if(stageTwo == 0)
+                {
+                    pointer->event.stage = 2;
+                }
+                else if(stageThree == 0)
+                {
+                    pointer->event.stage = 3;
+                }
+
+                if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.hour == buffer->event.endHour) && ((pointer->event.minute == buffer->event.endMin) || (pointer->event.minute < buffer->event.endMin)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
+                {   
+                    gap = buffer->event.endMin - pointer->event.minute;
+
+                    pointer->event.minute += (gap + PREP);
+                    pointer->event.endMin += (gap + PREP);
+
+                    if(pointer->event.minute >= 60)
+                    {
+                        pointer->event.hour++;
+                        pointer->event.minute -= 60;
+                    }
+
+                    if(pointer->event.endMin >= 60)
+                    {
+                        pointer->event.endHour++;
+                        pointer->event.endMin -= 60;
+                    }
+                }
+
+                if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.endHour == buffer->event.hour) && ((pointer->event.endMin == buffer->event.minute) || (pointer->event.endMin > buffer->event.minute)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
+                {
+                    
+                    gap = pointer->event.endMin - buffer->event.minute;
+
+                    pointer->event.endMin -= (gap + PREP);
+                    pointer->event.minute -= (gap + PREP);
+
+                    if(pointer->event.endMin < 0)
+                    {
+                        pointer->event.endHour--;
+                        pointer->event.endMin = 60 + pointer->event.endMin;
+                    }
+
+                    if(pointer->event.minute < 0)
+                    {
+                        pointer->event.hour--;
+                        pointer->event.minute = 60 + pointer->event.minute;
+                    }
+
+                }
+
+                buffer = buffer->next;
+            }
+            
+            buffer = head;
+            pointer = pointer->next;
+        }
+}
+
 
 void validate(node *head)
 {
@@ -263,7 +304,7 @@ int main()
     node *head = (node*) malloc(sizeof(node));
     head = NULL;
 
-    printf("\e[1mWelcome to the event planner!\e[m\n\n");
+    printf("\e[1mWelcome to the event planner!\e[m\n");
 
     main:
         userInput = menu();
@@ -288,7 +329,7 @@ int main()
 
             while(buffer != NULL)
             {
-                printf("%s, %d, %d:%d \t%d:%d\n", buffer->event.name, buffer->event.priority, buffer->event.hour, buffer->event.minute, buffer->event.endHour, buffer->event.endMin);
+                printf("%s, %d, stage:%d, %d:%d \t%d:%d\n", buffer->event.name, buffer->event.priority, buffer->event.stage, buffer->event.hour, buffer->event.minute, buffer->event.endHour, buffer->event.endMin);
                 buffer = buffer->next;
             }
 
