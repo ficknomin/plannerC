@@ -330,7 +330,7 @@ int main()
 
             while(buffer != NULL)
             {
-                printf("%s, %d, stage:%d, %d:%d \t%d:%d\n", buffer->event.name, buffer->event.priority, buffer->event.stage, buffer->event.hour, buffer->event.minute, buffer->event.endHour, buffer->event.endMin);
+                printf("%s-> Priority: %d, Stage: %d, %d:%d  %d:%d\n", buffer->event.name, buffer->event.priority, buffer->event.stage, buffer->event.hour, buffer->event.minute, buffer->event.endHour, buffer->event.endMin);
                 buffer = buffer->next;
             }
 
