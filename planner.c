@@ -122,75 +122,75 @@ void sortTime(node* head)
     int gap;
     int stageOne = 0, stageTwo = 0, stageThree = 0;
 
-        for(int i = 0; i < numElements(head); i++)
+    for(int i = 0; i < numElements(head); i++)
+    {
+        for(int y = 0; y < numElements(head); y++)
         {
-            for(int y = 0; y < numElements(head); y++)
+            stageOne = parseStage(pointer, head, 1);
+            stageTwo = parseStage(pointer, head, 2);
+            stageThree = parseStage(pointer, head, 3);
+
+            if(stageOne == 0)
             {
-                stageOne = parseStage(pointer, head, 1);
-                stageTwo = parseStage(pointer, head, 2);
-                stageThree = parseStage(pointer, head, 3);
-
-                if(stageOne == 0)
-                {
-                    pointer->event.stage = 1;
-                }
-                else if(stageTwo == 0)
-                {
-                    pointer->event.stage = 2;
-                }
-                else if(stageThree == 0)
-                {
-                    pointer->event.stage = 3;
-                }
-
-                if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.hour == buffer->event.endHour) && ((pointer->event.minute == buffer->event.endMin) || (pointer->event.minute < buffer->event.endMin)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
-                {   
-                    gap = buffer->event.endMin - pointer->event.minute;
-
-                    pointer->event.minute += (gap + PREP);
-                    pointer->event.endMin += (gap + PREP);
-
-                    if(pointer->event.minute >= 60)
-                    {
-                        pointer->event.hour++;
-                        pointer->event.minute -= 60;
-                    }
-
-                    if(pointer->event.endMin >= 60)
-                    {
-                        pointer->event.endHour++;
-                        pointer->event.endMin -= 60;
-                    }
-                }
-
-                if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.endHour == buffer->event.hour) && ((pointer->event.endMin == buffer->event.minute) || (pointer->event.endMin > buffer->event.minute)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
-                {
-                    
-                    gap = pointer->event.endMin - buffer->event.minute;
-
-                    pointer->event.endMin -= (gap + PREP);
-                    pointer->event.minute -= (gap + PREP);
-
-                    if(pointer->event.endMin < 0)
-                    {
-                        pointer->event.endHour--;
-                        pointer->event.endMin = 60 + pointer->event.endMin;
-                    }
-
-                    if(pointer->event.minute < 0)
-                    {
-                        pointer->event.hour--;
-                        pointer->event.minute = 60 + pointer->event.minute;
-                    }
-
-                }
-
-                buffer = buffer->next;
+                pointer->event.stage = 1;
             }
-            
-            buffer = head;
-            pointer = pointer->next;
+            else if(stageTwo == 0)
+            {
+                pointer->event.stage = 2;
+            }
+            else if(stageThree == 0)
+            {
+                pointer->event.stage = 3;
+            }
+
+            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.hour == buffer->event.endHour) && ((pointer->event.minute == buffer->event.endMin) || (pointer->event.minute < buffer->event.endMin)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
+            {   
+                gap = buffer->event.endMin - pointer->event.minute;
+
+                pointer->event.minute += (gap + PREP);
+                pointer->event.endMin += (gap + PREP);
+
+                if(pointer->event.minute >= 60)
+                {
+                    pointer->event.hour++;
+                    pointer->event.minute -= 60;
+                }
+
+                if(pointer->event.endMin >= 60)
+                {
+                    pointer->event.endHour++;
+                    pointer->event.endMin -= 60;
+                }
+            }
+
+            if((strcmp(buffer->event.name, pointer->event.name) != 0) && (pointer->event.endHour == buffer->event.hour) && ((pointer->event.endMin == buffer->event.minute) || (pointer->event.endMin > buffer->event.minute)) && (pointer->event.priority>=buffer->event.priority) && (pointer->event.stage == buffer->event.stage))
+            {
+                
+                gap = pointer->event.endMin - buffer->event.minute;
+
+                pointer->event.endMin -= (gap + PREP);
+                pointer->event.minute -= (gap + PREP);
+
+                if(pointer->event.endMin < 0)
+                {
+                    pointer->event.endHour--;
+                    pointer->event.endMin = 60 + pointer->event.endMin;
+                }
+
+                if(pointer->event.minute < 0)
+                {
+                    pointer->event.hour--;
+                    pointer->event.minute = 60 + pointer->event.minute;
+                }
+
+            }
+
+            buffer = buffer->next;
         }
+        
+        buffer = head;
+        pointer = pointer->next;
+    }
 }
 
 
@@ -222,9 +222,10 @@ int menu()
     int userInput;
 
     printf("\nChoose an option:\n");
-    printf("1. List all events\n2. Add an event\n3. Exit\n\n");
+    printf("1. Sort and list all events\n2. Add an event\n3. Save to txt\n4. Exit\n\n");
 
     scanf("%d", &userInput);
+    while ((getchar()) != '\n');
 
     return userInput;
 }
@@ -343,5 +344,40 @@ int main()
             createEvent(&head);
 
             goto main;
+        }
+
+        if(userInput == 3)
+        {
+            char *filename = "schedule.txt";
+
+            FILE *file = fopen(filename, "w");
+
+            if(file == NULL)
+            {
+                printf("Unable to open the file, change the file name.\n");
+                goto main;
+            }
+            
+            else
+            {
+                fprintf(file, "SCHEDULE\n\n");
+
+                node *buffer = head;
+
+                while(buffer != NULL)
+                {
+                    fprintf(file, "%s-> Stage: %d, Priority: %d, %d:%d   %d:%d\n", buffer->event.name, buffer->event.stage, buffer->event.priority, buffer->event.hour, buffer->event.minute, buffer->event.endHour, buffer->event.endMin);
+                    buffer = buffer->next;
+                }
+
+                fclose(file);
+                printf("Saved successfuly!\n");
+                goto main;
+            }
+        }
+
+        else
+        {
+            return 1;
         }
 }
